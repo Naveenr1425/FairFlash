@@ -89,6 +89,19 @@ export interface CreateOrderPayload {
 
 export const ordersApi = {
   async createOrder(payload: CreateOrderPayload): Promise<{ order: Order; tickets: Ticket[] }> {
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
+
     await delay(1200); // Realistic payment process delay
     
     const event = mockEvents.find(e => e.id === payload.eventId);
@@ -167,11 +180,29 @@ export const ordersApi = {
   },
 
   async getOrders(): Promise<Order[]> {
+    try {
+      const res = await fetch('/api/orders');
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
+
     await delay(350);
     return [...localOrders];
   },
 
   async getOrderById(id: string): Promise<Order> {
+    try {
+      const res = await fetch(`/api/orders/${encodeURIComponent(id)}`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
+
     await delay(300);
     const order = localOrders.find(o => o.id === id);
     if (!order) throw new Error(`Order #${id} not found.`);
@@ -181,11 +212,29 @@ export const ordersApi = {
 
 export const ticketsApi = {
   async getTickets(): Promise<Ticket[]> {
+    try {
+      const res = await fetch('/api/tickets');
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
+
     await delay(300);
     return [...localTickets];
   },
 
   async getTicketById(id: string): Promise<Ticket> {
+    try {
+      const res = await fetch(`/api/tickets/${encodeURIComponent(id)}`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
+
     await delay(250);
     const ticket = localTickets.find(t => t.id === id);
     if (!ticket) throw new Error(`Ticket #${id} not found.`);

@@ -17,6 +17,24 @@ export interface GetEventsParams {
 
 export const eventsApi = {
   async getEvents(params: GetEventsParams = {}): Promise<{ events: Event[]; total: number }> {
+    try {
+      const query = new URLSearchParams();
+      if (params.city && params.city !== 'All Cities' && params.city !== 'All') query.set('city', params.city);
+      if (params.category && params.category !== 'All') query.set('category', params.category);
+      if (params.search) query.set('search', params.search);
+      if (params.isHighDemand !== undefined) query.set('isHighDemand', String(params.isHighDemand));
+      if (params.isFlashSale !== undefined) query.set('isFlashSale', String(params.isFlashSale));
+      if (params.minPrice !== undefined) query.set('minPrice', String(params.minPrice));
+      if (params.maxPrice !== undefined) query.set('maxPrice', String(params.maxPrice));
+
+      const res = await fetch(`/api/events?${query.toString()}`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Backend not running; fallback to local mock data
+    }
+
     await delay(Math.floor(Math.random() * 300) + 300); // 300 - 600ms latency
 
     let results = [...mockEvents];
@@ -58,6 +76,15 @@ export const eventsApi = {
   },
 
   async getEventById(idOrSlug: string): Promise<Event> {
+    try {
+      const res = await fetch(`/api/events/${encodeURIComponent(idOrSlug)}`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback to local
+    }
+
     await delay(Math.floor(Math.random() * 200) + 250);
     const event = mockEvents.find(e => e.id === idOrSlug || e.slug === idOrSlug);
     if (!event) {
@@ -67,6 +94,15 @@ export const eventsApi = {
   },
 
   async getFeaturedBannerEvents(): Promise<Event[]> {
+    try {
+      const res = await fetch('/api/events/featured');
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
+
     await delay(200);
     return mockEvents.filter(e => e.isHighDemand || e.isFlashSale).slice(0, 4);
   }

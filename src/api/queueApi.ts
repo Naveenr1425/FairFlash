@@ -7,6 +7,19 @@ const queueStore: Record<string, QueueSession> = {};
 
 export const queueApi = {
   async joinQueue(eventId: string): Promise<QueueSession> {
+    try {
+      const res = await fetch('/api/queue/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId }),
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
+
     await delay(400);
     const event = mockEvents.find(e => e.id === eventId || e.slug === eventId);
     
@@ -43,10 +56,18 @@ export const queueApi = {
   },
 
   async getQueuePosition(queueId: string): Promise<QueueSession> {
+    try {
+      const res = await fetch(`/api/queue/${encodeURIComponent(queueId)}`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
+
     await delay(300);
     const session = queueStore[queueId];
     if (!session) {
-      // Create a fallback ready session if queue was lost during testing
       return {
         queueId,
         eventId: 'evt-001',
@@ -62,7 +83,6 @@ export const queueApi = {
 
     if (session.status === 'waiting') {
       if (session.position > 1) {
-        // Decrement position by 1 to 2
         session.position -= Math.floor(Math.random() * 2) + 1;
         if (session.position < 1) session.position = 1;
         session.estimatedWaitSeconds = Math.max(2, session.position * 3);
@@ -79,6 +99,19 @@ export const queueApi = {
   },
 
   async setQueueStatusForTesting(queueId: string, status: QueueSession['status']): Promise<QueueSession> {
+    try {
+      const res = await fetch(`/api/queue/${encodeURIComponent(queueId)}/test-status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
+
     await delay(100);
     if (!queueStore[queueId]) {
       queueStore[queueId] = {
@@ -101,6 +134,17 @@ export const queueApi = {
   },
 
   async leaveQueue(queueId: string): Promise<{ success: boolean }> {
+    try {
+      const res = await fetch(`/api/queue/${encodeURIComponent(queueId)}/leave`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
+
     await delay(150);
     delete queueStore[queueId];
     return { success: true };
